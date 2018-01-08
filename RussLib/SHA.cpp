@@ -432,63 +432,82 @@ namespace RussCryptoFuncs
 
 		// Append the hash segments together one after the other to get the full
 		// 256 bit hash.
-		return show_as_hex(H0) + show_as_hex(H1) + show_as_hex(H2) +
+		string s = show_as_hex(H0) + show_as_hex(H1) + show_as_hex(H2) +
 			show_as_hex(H3) + show_as_hex(H4) + show_as_hex(H5) +
 			show_as_hex(H6) + show_as_hex(H7);
+		return s;
 	}
 
 	string SHA::generateHash(string rawMessage) {
-		string message = rawMessage;
-		bool testing;
-		if (testing = (rawMessage.length() == 0)) {
-			cout << "No input string found, running test using abc.\n";
-			message = "abc";
-		}
-		else {
-			if (rawMessage.length() > 55)
-			{
-				cout << "Your string is over 55 characters long, please use a"
-					<< " shorter message!\n";
-				return string("0");
+		//bool testing;
+		//if (testing = (rawMessage.length() == 0)) {
+		//	cout << "No input string found, running test using abc.\n";
+		//	rawMessage = "abc";
+		//	const string correct_abc_hash = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+		//	char h[64] = "";
+		//	generateSingleHash(h, rawMessage);
+		//	if (correct_abc_hash.compare(h) != 0)
+		//	{
+		//		cout << "\tTEST FAILED!\n";
+		//		return(string("test failed..."));
+		//	}
+		//	else
+		//	{
+		//		cout << "\tTEST PASSED!\n";
+		//		return(string("test passed"));
+		//	}
+		//}
+		//else {
+		char *newHash = new char[64]();
+		char *cumulativeHash = new char[64]();
+			int len = rawMessage.length();
+			int i = 0;
+			char *p = &rawMessage[0];
+			cout << "p: " << p << endl;
+			char m[56] = "";
+			bool firstTripRound = false;
+			while (*p) {
+				cout << "current p: " << *p << endl;
+				int i = 0;
+				for (; i < 55 && *p; i++, p++) {
+					m[i] = *p;
+				}
+				m[i] = '\0';
+				generateSingleHash(newHash, m);
+				combineHash(cumulativeHash, newHash);
 			}
-			message = rawMessage;
+
+			return newHash;
+		//}
+	}
+
+	string SHA::combineHash(char* c, char* n) {
+		cout << "currentHash: " << c << endl;
+		cout << "newHash: " << n << endl;
+
+		for(int i = 0; i < 64; i++){
+			cout << "*c+i: " << *(c + i) << endl;
+			cout << "*n+i: " << *(n + i) << endl;
+			int t = *(c + i) + *(n + i) - 65*2;
+			t %= 57;
+			t += 65;
+			c[i] = (char)t;
+			cout << "added: " << c[i];
 		}
+		cout << "combined1: " << string(c) << endl;
+		return c;
+	}
 
-		// abc in decimal is 97 98 99
-		// abc in hex is 0x61 0x62 0x63
-
-		// This will hold all the blocks.
+	string SHA::generateSingleHash(char result[64], string message) {
 		vector<unsigned long> block;
-
-		// First convert this guy to a vector of strings representing 8 bit variables.
 		block = convert_to_binary(message);
-
-		// Pad it so that the message will be a full 512 bits long.
 		block = pad_to_512bits(block);
-
-		// Combine the seperate 8 bit sections into single 32 bit sections.
 		block = resize_block(block);
-
-
-		// This is what does the actual hashing.
-		string hash = compute_hash(block);
-		// if testing was enabled then the program will run a self check by
-		// seeing if the hash of abc is the same as the expected hash.
-		if (testing)
-		{
-			const string correct_abc_hash = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
-			if (correct_abc_hash.compare(hash) != 0)
-			{
-				cout << "\tTEST FAILED!\n";
-				return(string("test failed..."));
-			}
-			else
-			{
-				cout << "\tTEST PASSED!\n";
-				return(string("test passed"));
-			}
+		string res = compute_hash(block);
+		for (int i = 0; i < res.length(); i++) {
+			result[i] = res[i];
 		}
-		return hash;
+		return string(result);
 	}
 }
 

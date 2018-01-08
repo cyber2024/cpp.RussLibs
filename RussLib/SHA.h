@@ -24,7 +24,8 @@ namespace RussCryptoFuncs
 
 		// The actual hash computing.
 		static string compute_hash(const vector<unsigned long>);
-
+		static string combineHash(char*, char*);
+		static string generateSingleHash(char[64], string);
 		static string generateHash(string);
 	private:
 		SHA() {};
